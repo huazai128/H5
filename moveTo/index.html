@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body{background: #0b8883
+        }
+        *{margin: 0;padding: 0;}
+        canvas{margin: 0 auto;border: 1px solid lightgray;}
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+    var canvas = document.querySelector("#canvas");
+    canvas.width =  400;
+    canvas.height = 200;
+    var image = new Image();
+    var ct = canvas.getContext("2d");
+    function drawGrid(ct,color,stepx,stepy){
+        ct.strokeStyle = color;
+        ct.lineWidth = 0.5;
+        //遍历X轴Y不变
+        for(var i = stepx + 0.5;i < canvas.width;i += stepx){
+            console.log(i);
+            ct.beginPath();
+            ct.moveTo(i,0);
+            ct.lineTo(i,canvas.height);
+            ct.stroke();
+
+        }
+        //遍历Y轴X不变
+        for(var i = stepy + 0.5;i < canvas.height;i += stepy){
+            ct.beginPath();
+            ct.moveTo(0,i);
+            ct.lineTo(canvas.width,i);
+            ct.stroke();
+        }
+    }
+    drawGrid(ct,"lightgray",10,10)
+</script>
+</body>
+</html>

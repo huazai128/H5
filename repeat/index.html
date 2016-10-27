@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body{background: #0b8883;}
+        *{margin: 0;padding: 0;}
+        label{padding: 0 10px;}
+    </style>
+</head>
+<body>
+<div class="box">
+    <label><input type="radio" name="repeat" id="repeat">repeat</label>
+    <label><input type="radio" name="repeat" id="repeatX">repeatX</label>
+    <label><input type="radio" name="repeat" id="repeatY">repeatY</label>
+    <label><input type="radio" name="repeat" id="noRepeat">noRepeat</label>
+</div>
+<canvas id="canvas"></canvas>
+<script>
+    var canvas = document.querySelector("#canvas");
+    var repeat = document.querySelector("#repeat");
+    var repeatX = document.querySelector("#repeatX");
+    var repeatY = document.querySelector("#repeatY");
+    var noRepeat = document.querySelector("#noRepeat");
+    canvas.width =  400;
+    canvas.height = 400;
+    var image = new Image();
+    var ct = canvas.getContext("2d");
+    function fillPattern(repeatStr){
+        //createPattern(image,repeat):image；可以是图片、canvas元素或者video视频；repeat;是否平铺
+        var pattern = ct.createPattern(image,repeatStr);//创建图案；和css背景图片设置一样
+        ct.clearRect(0,0,canvas.width,canvas.height);//清楚画布
+        ct.fillStyle = pattern;//填充样式可以是颜色，背景图片，线性背景，放射背景
+        ct.fillRect(0,0,canvas.width,canvas.height);
+        ct.fill();
+    }
+    repeat.onclick = function(){
+        fillPattern("repeat");
+    }
+    repeatX.onclick = function(){
+        fillPattern("repeat-x");
+    }
+    repeatY.onclick = function(){
+        fillPattern("repeat-y");
+    }
+    noRepeat.onclick = function(){
+        fillPattern("no-repeat");
+    }
+    image.onload = function(){
+        fillPattern("repeat");
+    }
+    image.src = "icon_issue_blue.png";
+</script>
+</body>
+</html>

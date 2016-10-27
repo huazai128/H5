@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        *{margin: 0;padding: 0;}
+        body{background: #ddd;}
+        img{position: absolute;top: 30px;left: 10px;}
+        .box{margin: 50px;}
+        label{padding-right: 15px;}
+        canvas{background: #fff;box-shadow: 3px 3px 6px rgba(0,0,0,0.5);cursor: crosshair;}
+    </style>
+</head>
+<body>
+<div class="box">
+   <label>
+       绘制颜色:
+       <select id="stokeColor">
+           <option value="red" selected>red</option>
+           <option value="green">green</option>
+           <option value="blue">blue</option>
+           <option value="orange">orange</option>
+           <option value="cornflowerblue">cornflowerblue</option>
+           <option value="goldenrod">goldenrod</option>
+           <option value="navy">navy</option>
+           <option value="purple">purple</option>
+       </select>
+   </label>
+    <label>
+        填充颜色:
+        <select id="fillColor">
+            <option value="red" selected>red</option>
+            <option value="green">green</option>
+            <option value="blue">blue</option>
+            <option value="orange">orange</option>
+            <option value="cornflowerblue">cornflowerblue</option>
+            <option value="goldenrod">goldenrod</option>
+            <option value="navy">navy</option>
+            <option value="purple">purple</option>
+        </select>
+    </label>
+    <label>
+        边数：
+        <select id="sides">
+            <option value="4">4</option>
+            <option value="6">6</option>
+            <option value="8">8</option>
+            <option value="10">10</option>
+            <option value="12">12</option>
+            <option value="20">20</option>
+        </select>
+    </label>
+    <label>
+        开始角度：
+        <select id="angle">
+            <option value="0">0</option>
+            <option value="22.5">22.5</option>
+            <option value="45">45</option>
+            <option value="67.5">67.5</option>
+            <option value="90">90</option>
+        </select>
+    </label>
+    <label><input type="checkbox" id="fill" >fillStyle</label>
+    <label><input type="checkbox" id="edit">Edit</label>
+    <button type="button" id="reset">重置绘画</button>
+</div>
+<div class="box">
+    <canvas id="canvas"></canvas>
+</div>
+<script src="polygon.js"></script>
+<script>
+    var canvas = document.querySelector("#canvas");
+    var stokeColor = document.querySelector("#stokeColor");
+    var fillColor = document.querySelector("#fillColor");
+    var sidesBox = document.querySelector("#sides");
+    var angleBox = document.querySelector("#angle");
+    var fillBox = document.querySelector("#fill");
+    var reset = document.querySelector("#reset");
+    var editBox =  document.querySelector("#edit");
+    canvas.width = 800;
+    canvas.height =  450;
+    var ct = canvas.getContext("2d");
+    var options = {};
+    var start = 10;                              //默认网格间距为10
+    options.sides = 4;                          //默认为4边行
+    var angle = 0;                               //默认角度为0
+    var editing = false;                        //定义编辑开关
+    var drawing = false;                        //
+    var imageDate;
+    var flag = false;
+    var mousedown = {};                         //用于保存鼠标按下的坐标
+    var disRect = {};                           //用于保存鼠标按下到鼠标移动后之间的距离及距离canvas元素的top、left的距离及radius半径
+    var Point = function(x,y){                  //x,y:为鼠标按下时的坐标位置
+        this.x = x;
+        this.y = y;
+    };
+    var polypons = [];                          //每次绘制图形都要放置到数组中
+
+    //绘制网格
+    function drawGrid(){
+        ct.strokeStyle = "#e5e5e5";           //绘制颜色
+        ct.lineWidth = 0.5;                     //线宽
+        //绘制X轴
+        for(var i = start+ 0.5; i < canvas.height; i += start){
+            ct.beginPath();
+            ct.moveTo(0,i);
+            ct.lineTo(canvas.width,i);
+            ct.stroke();
+        }
+        //绘制X轴
+        for(var i = start + 0.5; i< canvas.width; i += start){
+            ct.beginPath();
+            ct.moveTo(i,0);
+            ct.lineTo(i,canvas.height);
+            ct.stroke();
+        }
+    }
+
+    //在鼠标按下时，赋值画布上的矩形像素数据；然后通过putImageData(image,x,y)将图像数据放回到画布；类似于清楚画布效果，但是会保留绘制的效果
+    function saveDraw(){
+        imageDate = ct.getImageData(0,0,canvas.width,canvas.height);
+    }
+
+    function putImageData(){                    //把getImageData()复制的矩形数据输出到画布;输出的位置；默认是宽高，就是保存时的宽高
+        ct.putImageData(imageDate,0,0);
+    }
+
+    //计算鼠标按下的坐标到移动后的坐标距离
+    function distance(move){                     //计算鼠标按下的坐标到移动后的坐标距离
+        disRect.width = Math.abs(move.x - mousedown.x);   //Math.abs():求绝对值
+        disRect.height = Math.abs(move.y - mousedown.y);
+        if(move.x > mousedown.x){               //判断矩形距离canvas元素的left、top距离
+            disRect.left =  mousedown.x;
+        }else{
+            disRect.left =  move.x;
+        }
+        if(move.y > mousedown.y){
+            disRect.top =  mousedown.y;
+        }else{
+            disRect.top =  move.y;
+        }
+        disRect.radius = Math.sqrt(Math.pow(disRect.width,2) + Math.pow(disRect.height,2)); // 半径
+    }
+
+    //获取鼠标距离canvas顶端坐标点距离
+    function clientPoint(x,y){                   //x,y分别是表示鼠标按下及滑动时的坐标位置
+        var boxs = canvas.getBoundingClientRect();    //用于获取canvas元素距离top，left距离；同时可以获取canvas元素的width和height
+        return {x:x - boxs.left*(canvas.width / boxs.width),y: y - boxs.top *(canvas.height / boxs.height)};//获取鼠标距离canvas顶端坐标点距离
+    }
+
+    //当鼠标按下时，获取当前的坐标位置
+    canvas.onmousedown = function(e){
+        var startPoint = clientPoint(e.clientX, e.clientY);
+        mousedown.x = startPoint.x;             //保存鼠标按下相对于canvas元素坐标原定距离鼠标按下的坐标位置
+        mousedown.y = startPoint.y;
+        flag = true;
+        saveDraw();                              //调用；复制鼠标按下前的矩形像素
+    };
+    //获取鼠标移动的坐标位置
+    canvas.onmousemove = function(e){
+        if(flag){
+            var move = clientPoint(e.clientX, e.clientY);
+            putImageData();                     //恢复赋值前的状态
+            totalDraw(move,sides,angle);      //开始绘制
+            drawCross(move.x,move.y);
+        }
+    };
+
+    //鼠标结束移动;获取结束后的坐标位置
+    canvas.onmouseup = function(e){
+        flag = false;
+        var move = clientPoint(e.clientX, e.clientY);
+        putImageData();
+        totalDraw(move,sides,angle)
+    };
+
+    canvas.onmouseout = function(){            //鼠标离开canvas元素
+        if(flag){
+            putImageData();
+            flag = false;
+        }
+    };
+
+    function totalDraw(move,sides,angle){       //接受move(鼠标当前坐标)、sides(边数)、angle(开始角度)
+        distance(move);
+        drawShape(move,sides,angle);
+    }
+
+    function drawShape(move,sides,angle){       //接受move(鼠标当前坐标)、sides(边数)、angle(开始角度)
+        var polygon = new Polygon(mousedown.x, mousedown.y,
+                disRect.radius,
+                options.sides,
+                options.angle,
+                options.fillStyle,
+                options.strokeStyle,
+                options.filled
+        );
+        ct.beginPath();
+        polygon.createPoint(ct);                 //创建多边形每个顶点的坐标
+        polygon.stroke(ct);                      //绘制每个顶点坐标的线
+        polygon.fill(ct);                        //绘制对变形进行填充样式
+        console.log(polygon.x);
+        console.log(mousedown.x);
+        ct.stroke();
+        if(!drawing){
+            polypons.push(polygon);             //把每次绘制的图像都添加到数组中
+        }
+    }
+
+    function drawCross(x,y){                    // x，y：是距离canvas元素坐标原点的坐标
+        ct.save();                               //保存canvas画布之前的状态；保存后以便于后续操作，如旋转、缩放、裁剪、偏移等操作
+        ct.strokeStyle = "blue";              //绘制颜色
+        ct.lineWidth = 0.5;                    //线宽
+        drawVertical(x);
+        drawHorizontal(y);
+        ct.restore();                           //恢复保存前的状态
+    }
+
+    function drawVertical(x){                  //绘制X轴线
+        ct.beginPath();
+        ct.moveTo(x+0.5,0);
+        ct.lineTo(x+0.5,canvas.height);
+        ct.stroke();
+    }
+
+    function drawHorizontal(y){                 //绘制Y轴线
+        ct.beginPath();
+        ct.moveTo(0,y+0.5);
+        ct.lineTo(canvas.width,y+0.5);
+        ct.stroke();
+    }
+    drawGrid();
+
+    //点击事件 ..........................
+    stokeColor.onchange = function(){
+        options.strokeStyle = stokeColor.value;
+    }
+    fillColor.onchange = function(){
+        options.fillStyle = fillColor.value;
+    }
+    sidesBox.onchange = function(){
+        options.sides = sidesBox.value;
+    }
+    angleBox.onchange = function(){
+        options.angle = angleBox.value;
+    }
+    fillBox.onclick = function(){
+        options.filled = fillBox.checked;
+    }
+    reset.onclick = function(){
+        ct.clearRect(0,0,canvas.width,canvas.height);
+        drawGrid()
+    }
+    function init(){
+        var tmpPolygon = new Polygon(0,0,1,4,0,'red','red',false);
+        ct.beginPath();
+        ct.save();
+        tmpPolygon.fill(ct);
+        tmpPolygon.createPoint(ct);
+        tmpPolygon.stroke(ct);
+        ct.restore();
+    }
+    init();
+    ct.shadowBlur = 4;
+    ct.shadowOffsetX =2;
+    ct.shadowOffsetY = 2;
+    ct.shadowColor = "rgba(0,0,0,0.4)";
+</script>
+</body>
+</html>

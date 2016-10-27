@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        *{margin: 0;padding: 0;}
+        body{background: rgba(100,145,250,0.5);}
+        canvas{cursor: crosshair;padding: 0;background: #e6e6e6;margin: 30px;}
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+    var canvas = document.querySelector("#canvas");
+    var ct = canvas.getContext("2d");
+    canvas.width = 400;
+    canvas.height = 400;
+    var endPoints = [{x: 130, y: 170},{x: 430,y: 270}];
+    var ctrPoints = [{x: 130, y: 250},{x: 450,y: 70}];
+    function drawGrid(color,stepX,stepY){
+        
+    }
+</script>
+</body>
+</html>

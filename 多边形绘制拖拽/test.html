@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<body>
+<canvas id="canvas">
+</canvas>
+<script>
+    var c=document.getElementById("canvas");
+    var ctx=c.getContext("2d");
+    ctx.rect(20,20,150,100);
+    if (ctx.isPointInPath(20,50))
+    {
+        ctx.stroke();
+        alert(1)
+    };
+
+</script>
+</body>
+</html>

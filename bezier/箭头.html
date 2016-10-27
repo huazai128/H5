@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        *{margin: 0;padding: 0;}
+        body{background: rgba(100,145,250,0.5);}
+        canvas{cursor: crosshair;padding: 0;background: #e6e6e6;margin: 30px;}
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+    var canvas = document.querySelector("#canvas");
+    var ct = canvas.getContext("2d");
+    canvas.width = 100;
+    canvas.height = 100;
+    var arrowMargin = 10;
+    var radius = 3;
+    var points = [                             //六个点位置
+        {x:canvas.width - arrowMargin,y:canvas.height - arrowMargin},
+        {x:canvas.width - arrowMargin * 2,y:canvas.height - arrowMargin},
+        {x:radius,y: canvas.height/2},
+        {x:arrowMargin ,y:canvas.height/2 - arrowMargin},
+        {x:canvas.width - arrowMargin,y:arrowMargin},
+        {x:canvas.width - arrowMargin,y: arrowMargin* 2}
+    ];
+    function drawPoint(x,y,strokeStr,fillStr){ //绘制圆
+        ct.beginPath();
+        ct.fillStyle = fillStr;
+        ct.strokeStyle = strokeStr;
+        ct.lineWidth = 0.5;
+        ct.arc(x,y,radius,0,Math.PI * 2,false);
+        ct.fill();
+        ct.stroke();
+    }
+    function drawBezier(){                    //遍历points数组
+        var i,
+            strokeStr,
+            fillStr;
+        for(i = 0; i < points.length; i++){
+            fillStr = i % 2 === 0 ? "white":"blue";
+            strokeStr = i % 2 === 0 ? "blue": "white";
+            drawPoint(points[i].x,points[i].y,strokeStr,fillStr);
+        }
+    }
+    function drawArrow(){
+        ct.strokeStyle = "white";
+        ct.fillStyle = "cornflowerblue";
+        ct.moveTo(canvas.width - arrowMargin,arrowMargin * 2);
+        ct.lineTo(canvas.width - arrowMargin,canvas.height - arrowMargin * 2);
+        ct.quadraticCurveTo(points[0].x,points[0].y,points[1].x,points[1].y);
+        ct.lineTo(arrowMargin,canvas.height/2 + arrowMargin);
+        ct.quadraticCurveTo(points[2].x,points[2].y,points[3].x,points[3].y);
+        ct.lineTo(canvas.width - arrowMargin * 2,arrowMargin);
+        ct.quadraticCurveTo(points[4].x,points[4].y,points[5].x,points[5].y);
+        ct.stroke();
+        ct.fill();
+
+    }
+    drawBezier();
+    drawArrow();
+</script>
+</body>
+</html>

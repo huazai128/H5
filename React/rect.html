@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body{background: #0b8883
+        }
+        *{margin: 0;padding: 0;}
+        canvas{margin: 0 auto;}
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+    /**
+     * 在颜色使用上rgba的缺陷
+     * 1、rgba()： 是以硬件作为导向的，耗性能
+     * 2、不直观
+     */
+    var canvas = document.querySelector("#canvas");
+    canvas.width =  400;
+    canvas.height = 200;
+    var ct = canvas.getContext("2d");
+    //绘制矩形都是以顺时针绘制
+    ct.lineWidth = 1;
+    ct.beginPath();
+    ct.moveTo(50.5,10.5);
+    ct.lineTo(200.5,10.5);
+    ct.stroke();
+
+    ct.lineWidth = 1;
+    ct.beginPath();
+    ct.moveTo(50,20);
+    ct.lineTo(200,20);
+    ct.stroke();
+
+</script>
+</body>
+</html>

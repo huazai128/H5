@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body{background: #0b8883
+        }
+        *{margin: 0;padding: 0;}
+        canvas{margin-left: 50px;box-shadow: 0 0 5px #083f52; background: #fff;}
+        .box{margin: 50px 0 30px 50px;}
+        label{padding-right: 15px;}
+    </style>
+</head>
+<body>
+<div class="box">
+    Stoke Color: <select id="color">
+        <option value="red" selected>red</option>
+        <option value="green">green</option>
+        <option value="blue">blue</option>
+        <option value="orange">orange</option>
+        <option value="cornflowerblue">cornflowerblue</option>
+        <option value="goldenrod">goldenrod</option>
+        <option value="navy">navy</option>
+        <option value="purple">purple</option>
+    </select>
+    <label>Guidewires:<input type="checkbox" id="guid" checked /></label>
+    <input type="button" id="btn" value="Erase all"/>
+    <input type="button" id="reset" value="Reset">
+    <input type="button" id="save" value="Save">
+    <input type="button" id="arc" value="Arc">
+    <input type="button" id="fillBtn" value="fillStyle">
+</div>
+<canvas id="canvas"></canvas>
+<div class="image" id="list"></div>
+<script>
+    var canvas = document.querySelector("#canvas");
+    var ct = canvas.getContext("2d");
+    var btn = document.querySelector("#btn");
+    var color = document.querySelector("#color");
+    var guid = document.querySelector("#guid");
+    var reset = document.querySelector("#reset");
+    var list = document.querySelector("#list");
+    var save = document.querySelector("#save");
+    var arcs = document.querySelector("#arc");
+    var fillBtn = document.querySelector("#fillBtn");
+    var drawImageData,
+        mousedown = {},
+        rubRect = {},
+        flag = false,
+        arc = false,
+        fillSt = null;
+        guids = guid.checked;
+    canvas.width =  600;
+    canvas.height = 400;
+    /**
+     * 绘制网格
+     * @param ct
+     * @param color 颜色
+     * @param stepx 每小格在X轴距离
+     * @param stepy 每小格在Y轴距离
+     * 在绘制线宽时，线宽为0.5
+     */
+    function drawGrid(ct,color,stepx,stepy){
+        ct.strokeStyle = color;
+        ct.lineWidth = 0.5;
+        //遍历X轴Y不变
+        for(var i = stepx + 0.5;i < canvas.width;i += stepx){
+            ct.beginPath();
+            ct.moveTo(i,0);
+            ct.lineTo(i,canvas.height);
+            ct.stroke();
+        }
+        //遍历Y轴X不变
+        for(var i = stepy + 0.5;i < canvas.height;i += stepy){
+            ct.beginPath();
+            ct.moveTo(0,i);
+            ct.lineTo(canvas.width,i);
+            ct.stroke();
+        }
+    }
+    /**
+     * @param x 是代表鼠标按下的坐标X点
+     * @param y 是代表鼠标按下的坐标Y点
+     * @returns {{x}}
+     * 获取鼠标点击当前位置的坐标相对于左顶点的位置
+     */
+    function windownCanvas(x,y){
+        var boxs = canvas.getBoundingClientRect();//适用于获取canvas的width、height、top、left的距离 包含边框线
+        return {x:x - boxs.left * (canvas.width / boxs.width),y:y - boxs.top * (canvas.height / boxs.height)}
+    }
+    /**
+     * 复制画布上指定矩形的像素数据
+     */
+    function saveDraw(){
+        //getImageData(startX,startY,endX,endY):复制画布上指定矩形的像素数据，然后通过putImageData(image,x,y)将图像数据放回到画布
+        drawImageData = ct.getImageData(0,0,canvas.width,canvas.height);//
+    }
+    /**
+     * 把getImageData()复制的矩形数据输出到画布中
+     */
+    function putImageData(){
+        ct.putImageData(drawImageData,0,0);
+    }
+    /**
+     * 绘制鼠标区域矩形
+     * @param loc :鼠标移动的坐标对象
+     * 判断鼠标移动后和点击时坐标进行对比，来确定绘制的(x,y)位置
+     */
+    function updateRubRect(loc){
+        rubRect.width = Math.abs(loc.x - mousedown.x);
+        rubRect.height = Math.abs(loc.y - mousedown.y);
+        if(loc.x > mousedown.x){
+            rubRect.left = mousedown.x;
+        }else{
+            rubRect.left = loc.x;
+        }
+        if(loc.y > mousedown.y){
+            rubRect.top = mousedown.y;
+        }else{
+            rubRect.top = loc.y;
+        }
+    }
+    /**
+     * 绘制鼠标点击矩形的对角线
+     * @param loc :监听鼠标按下滑动后的坐标位置
+     */
+    function drawGubLine(loc){
+        ct.beginPath();
+        ct.moveTo(mousedown.x,mousedown.y);
+        ct.lineTo(loc.x,loc.y);
+        ct.stroke();//绘制 默认黑色
+    }
+    /**
+     *
+     * @param loc
+     */
+    function updateRubband(loc){
+        updateRubRect(loc);
+        if(!arc){
+            drawGubLine(loc);
+        }else{
+            drawArc(loc);
+        }
+    }
+    /**
+     * 绘制圆
+     */
+    function drawArc(loc){
+        var angle,radius;
+        if(mousedown.y === loc.y){
+            radius = Math.abs(loc.x - mousedown.x);
+        }else{
+            //aten：反正切是对边比临边
+            angle = Math.atan(rubRect.height/rubRect.width);
+            //斜边距离也就是半径
+            radius = rubRect.height/Math.sin(angle);
+            radius = Math.sqrt(Math.pow(rubRect.width,2) + Math.pow(rubRect.height,2))
+        }
+        ct.beginPath();
+        ct.strokeStyle = fillSt;
+        ct.fillStyle = fillSt;
+        ct.arc(mousedown.x,mousedown.y,radius,0, Math.PI* 2,false);
+        ct.stroke();
+        if(fillSt != null){
+            ct.fill()
+        }
+    }
+    /**
+     * 绘制X轴线
+     * @param y
+     */
+    function drawHorizontalLine(y){
+        ct.beginPath();
+        ct.moveTo(0,y + 0.5);
+        ct.lineTo(canvas.width,y + 0.5);
+        ct.stroke();
+    }
+    /**
+     * 绘制Y轴线
+     * @param x
+     */
+    function drawVerticalLine(x){
+        ct.beginPath();
+        ct.moveTo(x + 0.5,0);
+        ct.lineTo(x + 0.5,canvas.height);
+        ct.stroke();
+    }
+    /**
+     * 绘制十字线
+     * @param x
+     * @param y
+     */
+    function drawGuide(x,y){
+        ct.save();//作用是用来保存画布的状态和取出保存的状态的
+        ct.strokeStyle = "rgba(0,0,230,0.4)";
+        ct.lineWidth =  0.5;
+        drawHorizontalLine(y);
+        drawVerticalLine(x);
+        ct.restore();
+    };
+    canvas.onmousedown = function(e){
+        var loc = windownCanvas(e.clientX, e.clientY);
+        e.preventDefault();//阻止默认行为
+        saveDraw();
+        mousedown.x = loc.x;
+        mousedown.y = loc.y;
+        flag = true;
+    };
+    canvas.onmousemove = function(e){
+        var loc ;
+        if(flag){
+            fillSt = "rgb("+Math.floor(Math.random() * 256)+","+Math.floor(Math.random() * 256)+","+Math.floor(Math.random() * 256)+")";
+            e.preventDefault();
+            loc = windownCanvas(e.clientX, e.clientY);
+            putImageData();
+            updateRubband(loc);
+            if(guids){
+                drawGuide(loc.x,loc.y)
+            }
+        }
+    };
+    canvas.onmouseup= function(e){
+        flag = false;
+        loc = windownCanvas(e.clientX, e.clientY);
+        putImageData();
+        updateRubband(loc);
+
+    }
+    /**
+     * 如果鼠标离开canvas区域出发；bug
+     */
+    canvas.onmouseout = function(){
+        putImageData();
+        flag = false;
+    }
+    //重新使用网格
+    btn.onclick = function(e){
+        ct.clearRect(0,0,canvas.width,canvas.height);
+        drawGrid(ct,"lightgrat",10,10);
+        saveDraw();
+    }
+    //重置canvas
+    reset.onclick = function(e){
+        ct.clearRect(0,0,canvas.width,canvas.height);
+        saveDraw();
+        arc = false;
+        list.innerHTML = "";
+    };
+    //改变绘制颜色
+    color.onchange = function(){
+        ct.strokeStyle = color.value;
+    }
+    //坐标十字架显示和隐藏
+    guid.onchange = function(){
+        guids = guid.checked;
+    };
+    //保存为图片，是png格式
+    save.onclick = function(e){
+        var src = canvas.toDataURL();
+        var html = "<img src="+src+" />";
+        list.innerHTML = html;
+    };
+    arcs.onclick = function(){
+        arc = arc=== true? false: true;
+    };
+    fillBtn.onclick = function(){
+        arc = arc=== true? false: true;
+    }
+    ct.strokeStyle = color.value;
+</script>
+</body>
+</html>

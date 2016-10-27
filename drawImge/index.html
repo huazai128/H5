@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        *{margin: 0;padding: 0;}
+        body{background: rgba(100,145,250,0.5);}
+        canvas{cursor: crosshair;padding: 0;background: #e6e6e6;margin: 30px;}
+        .btn{margin: 20px 0 0 30px;}
+        .box {position: absolute;border: 2px solid blue;cursor: crosshair;display: none;}
+    </style>
+</head>
+<body>
+<div class="btn">
+    <input type="button" id="resetBtn" value="reset" />
+</div>
+<div class="box" id="box"></div>
+<canvas id="canvas"></canvas>
+<script>
+    /**
+     * @type {Element}
+     * 1、当鼠标按下时，首先要获取按下时的坐标，同时显示box盒子，并且定位在按下时位置
+     * 2、当鼠标移动时，获取移动时的坐标位置，并且随时改变box盒子定位和宽高
+     * 3、当鼠标事件结束时，剪切图片，在canvas开始剪切的位置接企鹅的宽高，保存在canvas中
+     * 4、重置：就是初始化drawImage(image,0,0,canvas.width,canvas.height)
+     */
+    var canvas = document.querySelector("#canvas");
+    var ct = canvas.getContext("2d");
+    canvas.width = 400;
+    canvas.height = 240;
+    var box = document.querySelector("#box");
+    var resetBtn = document.querySelector("#resetBtn");
+    var image = new Image();//实例化一个Image()对象
+    var mousedown = {};
+    var boxRect = {};
+    var flag = false;
+    //当鼠标按下获取按下时的坐标
+    canvas.onmousedown = function(e){
+        e =  e || window.event;
+        var x = e.clientX;
+        var y = e.clientY;
+        e.preventDefault();//阻止事件的默认行为
+        rubberStart(x,y)
+    };
+    function rubberStart(x,y){
+        mousedown.x = x;
+        mousedown.y = y;
+        boxRect.left = mousedown.x;
+        boxRect.top = mousedown.y;
+        moveRubberBox();
+        showRubberBox();
+        flag = true
+    }
+    //给box盒子添加css属性left和top值
+    function moveRubberBox(){
+        box.style.left = boxRect.left +"px";
+        box.style.top = boxRect.top +"px";
+    }
+    //box显示
+    function showRubberBox(){
+        box.style.display = "block";
+    }
+    //当鼠标移动时；获取鼠标移动时的坐标；并设置边界
+    window.onmousemove = function(e){
+        e = e || window.event;
+        var x = e.clientX;
+        var y = e.clientY;
+        //设置边界
+        var cli = canvas.getBoundingClientRect();
+        var cliX = cli.left + cli.width;
+        var cliY = cli.top + cli.height;
+        if(x < cli.left){
+            x = cli.left;
+        }else if(x > cliX){
+            x = cliX
+        }
+        if(y < cli.top){
+            y = cli.top;
+        }else if(y > cliY){
+            y = cliY
+        }
+         e.preventDefault();//阻止事件的默认行为
+        if(flag){//如果flag为true
+            rubberBandStretch(x,y);
+        }
+    };
+    //放下鼠标的时，
+    window.onmouseup = function(e){
+        e.preventDefault();
+        rubberbandEnd();
+    };
+    function rubberBandStretch(x,y){
+        //box盒子的定位
+        boxRect.left = x < mousedown.x ? x : mousedown.x;
+        boxRect.top = y < mousedown.x ? y : mousedown.y;
+        //box盒子的宽高
+        boxRect.width = Math.abs(x - mousedown.x-2);
+        boxRect.height = Math.abs(y - mousedown.y-2);
+        moveRubberBox();
+        resizeRubberBox();
+    }
+    //盒子宽高
+    function resizeRubberBox(){
+        box.style.width = boxRect.width + "px";
+        box.style.height = boxRect.height + "px";
+    }
+    //鼠标事件结束
+    function rubberbandEnd(){
+        var bBox = canvas.getBoundingClientRect();//获取canvas的边界框，以及left和top的距离
+        try{
+            //图片剪切的drawImage(img)
+            //图片剪切的drawImage(img)
+            ct.drawImage(canvas,//剪切对象
+                    boxRect.left - bBox.left,//开始剪切的X轴坐标
+                    boxRect.top -  bBox.top,//开始剪切的Y轴坐标
+                    boxRect.width,//剪切的宽度
+                    boxRect.height,//剪切的高度
+                    0,//画布上放置剪切对象的X轴位置
+                    0,//画布上放置剪切对象的Y轴位置
+                    canvas.width,//剪切后放置的宽度
+                    canvas.height//剪切后放置的高度
+            )
+        }catch(e){
+            console.log("")
+        }
+        resetBox();
+        boxRect.width = 0;
+        boxRect.height = 0;
+        hideBox();
+        flag = false;
+    }
+    //重置box盒子
+    function resetBox(){
+        boxRect = {left : 0,top: 0,width : 0,height: 0};
+    }
+    //box盒子隐藏
+    function hideBox(){
+        box.style.display = "none";
+    }
+    //图片加载加载
+    image.onload = function(){
+        ct.drawImage(image,0,0,canvas.width,canvas.height)
+    };
+    //重置绘画
+    resetBtn.onclick = function(){
+        ct.clearRect(0,0,canvas.width,canvas.height);
+        ct.drawImage(image,0,0,canvas.width,canvas.height)
+    };
+    image.src = "index01.jpg";
+</script>
+</body>
+</html>

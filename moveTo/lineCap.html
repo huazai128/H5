@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body{background: #0b8883
+        }
+        *{margin: 0;padding: 0;}
+        canvas{margin: 0 auto;border: 1px solid lightgray;}
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+    var canvas = document.querySelector("#canvas");
+    canvas.width =  400;
+    canvas.height = 300;
+    var ct = canvas.getContext("2d");
+    ct.beginPath();
+    ct.lineWidth = 10;
+    ct.strokeStyle = "red";
+    ct.lineCap = "round";
+    ct.lineJoin = "round"
+    ct.miterLimit =  "bevel";
+    ct.moveTo( 30,30);
+    ct.lineTo(200,30);
+    ct.lineTo(100,200)
+    ct.stroke();
+
+
+
+</script>
+</body>
+</html>

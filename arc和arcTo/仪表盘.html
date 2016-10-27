@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        *{margin: 0;padding: 0;}
+        body{background: rgb(11, 136, 131);}
+        canvas{padding: 0;margin: 30px;box-shadow: 2px 2px 4px #098188;background: #fff;}
+        .btn{margin: 20px 0 0 30px;}
+        .box {position: absolute;border: 2px solid blue;cursor: crosshair;display: none;}
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+    /**
+     * 主要根据勾股定理；三角函数；求当前的每个角度时的坐标 X:radius * Math.cos(angle)  Y:radius * Math.sin(angle)
+     * @type {Element}
+     */
+    var canvas = document.querySelector("#canvas");
+    canvas.width = 600;
+    canvas.height = 500;
+    var ct = canvas.getContext("2d");
+    var cent_radius = 10,
+            cent_strokeSty = "rgba(0,0,0,0.5)",
+            cent_fillSty = "rgba(80,190,240,0.6)",
+
+            ring_innerRadius = 35,
+            ring_outerRadius = 55,
+
+            annot_fillSty = "rgba(0,0,230,0.9)",
+            annot_textSize = 12,
+
+            tickWidth = 10,
+            tick_longStrokeSty = "rgba(100,140,230,0.9)",
+            tick_shortStrokeSty = "rgba(100,140,230,0.7)",
+
+            trackingStrokeSty = "rgba(100,140,230,0.5)",
+
+            guidStrokeSty = "goldenrod",
+            guidFillSty = "rgba(250,250,0,0.6)",
+
+            circle = {x: canvas.width/2,y: canvas.height/2,radius : 150};   //圆心及半径
+
+    function drawGrid(color,stepX,stepY){   //绘制网格线
+        ct.save();                           //用来保存Canvas的状态。save之后，可以调用Canvas的平移、放缩、旋转、错切、裁剪等操作。
+        ct.shadowColor = undefined;      //定义阴影效果颜色
+        ct.shadowOffsetX = 0;             //阴影效果往X轴偏移距离 正负数
+        ct.shadowOffsetY = 0;             //阴影效果往Y轴偏移距离 正负数
+        ct.strokeStyle = color;           //绘制颜色
+        ct.fillStyle = "#fff";           //填充颜色
+        ct.lineWidth = 0.5;               //线宽
+        ct.fillRect(0,0,canvas.width,canvas.height); //绘制一个填充矩形
+        for(var i = stepX + 0.5; i < canvas.width; i += stepX){  //绘制纵轴线
+            ct.moveTo(i,0);
+            ct.lineTo(i,canvas.height);
+            ct.stroke();
+        }
+        for(var i = stepY+ 0.5; i < canvas.height; i += stepY){  //绘制水平线
+            ct.moveTo(0,i);
+            ct.lineTo(canvas.width,i);
+            ct.stroke();
+        }
+        ct.restore();                      //用来恢复Canvas之前保存的状态。防止save后对Canvas执行的操作对后续的绘制有影响。
+    }
+    function drawCentroid(){             //绘制仪表圆盘
+        ct.beginPath();                   //重新开始一段绘制
+        ct.save();                        //用于保存canvas的状态，保存之后，可以进行偏移、缩放、旋转、错位、裁剪灯操作
+        ct.strokeStyle = cent_strokeSty;  //绘制颜色
+        ct.fillStyle = cent_fillSty;  //填充颜色
+        ct.arc(circle.x,circle.y,circle.radius,0,Math.PI * 2,false);   //绘制圆
+        ct.stroke();
+        ct.fill();
+        ct.restore();                    //用来恢复canvas保存之前的状态，防止save后对canvas执行的操作对后续的绘制有影响
+    }
+    function drawCentroidGuid(loc){     //绘制外圆和指针
+        var angle = - Math.PI / 2;      //指针指向12点钟方向
+        var radius,endpt;
+        radius = circle.radius + ring_outerRadius;  //外围圆半径；
+        if(loc.x >= circle.x){
+            endpt = {x:circle.x + radius * Math.cos(angle),y: circle.y + radius * Math.sin(angle)};  //外圆半径坐标  sin()：对边比斜边  cos(90度)=0 sin(90度) 等于1
+        }else{
+            endpt = {x:circle.x - radius * Math.cos(angle),y: circle.y - radius * Math.sin(angle)};  //外圆半径坐标  cos(): 邻边比斜边
+        }
+        ct.save();                           //保存canvas的状态，保存之后，可以进行偏移、缩放、旋转、错位、裁剪等操作
+        ct.strokeStyle = guidStrokeSty;  //绘制颜色
+        ct.fillStyle = guidFillSty;       //填充颜色
+        ct.beginPath();                      //开始新的绘制
+        ct.moveTo(circle.x,circle.y);     //绘制线  圆心
+        ct.lineTo(endpt.x,endpt.y);         //绘制线
+        ct.stroke();                        //绘制
+        ct.beginPath();                     //开始新的绘制
+        ct.strokeStyle = tick_longStrokeSty;        //绘制颜色
+        ct.arc(endpt.x,endpt.y,5,0,Math.PI *2,false);  //绘制小圆
+        ct.fill();                          //填充
+        ct.stroke();                        //绘制
+        ct.beginPath();                     //开始新的绘制
+        ct.strokeStyle = "black";        //绘制颜色
+        ct.fillStyle = "black";          //绘制颜色
+        ct.arc(circle.x,circle.y,5,0,Math.PI *2,false);  //绘制小圆
+        ct.fill();                          //填充
+        ct.stroke();                        //绘制
+        ct.restore();                       //恢复保存之前canvas的状态，防止canvas后续操作对绘制影响
+    }
+    function drawRing(){
+        drawRingOuterCircle();
+        ct.beginPath();
+        ct.strokeStyle = "rgba(0,0,0,0.1)";   //绘制颜色
+        ct.arc(circle.x,circle.y,circle.radius + ring_innerRadius,0,Math.PI * 2,false); //绘制中间圆；
+        ct.fillStyle = "rgba(1900,140,230,0.1)";  //填充颜色
+        ct.fill();                                 //填充
+        ct.stroke();                               //绘制
+    }
+    function drawRingOuterCircle(){               //绘制外圆
+        ct.shadowColor = "rgba(0,0,0,0.1)";   //阴影层颜色
+        ct.shadowOffsetX = 3;                    //阴影层往X轴偏移
+        ct.shadowOffsetY = 3;                    //阴影层往Y轴偏移
+        ct.shadowBlur = 6;                       //高斯模糊度
+        ct.strokeStyle = trackingStrokeSty;   //绘制颜色
+        ct.beginPath();                            //开始新的绘制
+        ct.arc(circle.x,circle.y,circle.radius + ring_outerRadius,0,Math.PI * 2,false); //绘制外圆
+        ct.stroke();
+    }
+    function drawTickInnerCircle(){               //绘制圆
+        ct.save();                                 //用于保存canvas当前绘制状态，保存后，可以进行偏移、旋转、缩放、错位、剪切等操作
+        ct.beginPath();
+        ct.strokeStyle = "rgba(0,0,0,0.1)";   //绘制颜色
+        ct.arc(circle.x,circle.y,circle.radius + ring_innerRadius - tickWidth,0,Math.PI * 2,false);  //绘制圆
+        ct.stroke();
+        ct.restore();
+    }
+    function drawTick(angle,radius,cnt){          //绘制刻度线
+        var tickW = cnt % 4 === 0 ? tickWidth : tickWidth / 2;  //除余：任何一个数值除以被除数还小，那么取于为本身；否则按除以这个数的余数
+        ct.beginPath();
+        ct.strokeStyle = tick_shortStrokeSty;
+        ct.moveTo(circle.x + Math.cos(angle) * (radius - tickW),circle.y + Math.sin(angle) * (radius - tickW));   //要点是计算每个点的坐标，已知半径求X，Y坐标是根据勾股定理计算;Math.sin():表示对边比斜边  Math.cos()：表示邻边比斜边
+        ct.lineTo(circle.x + Math.cos(angle) * radius,circle.y + Math.sin(angle) * radius);                       //要点是计算每个点的坐标，已知半径求X，Y坐标是根据勾股定理计算;Math.sin():表示对边比斜边  Math.cos()：表示邻边比斜边
+        ct.stroke();
+    }
+    function drawTicks(){                         //循环绘制刻度线
+        var radius  = circle.radius + ring_innerRadius;
+        var angleMax = 2 * Math.PI,              //最大绘制角度
+                angleDelta = Math.PI / 60;       //每个刻度相隔Math.PI / 60度
+        ct.save();
+        for(var angle = 0, cnt = 0 ;angle < angleMax;angle += angleDelta,cnt++){ //遍历
+            //console.log(cnt)                    //0 2 4 6 8 ...
+            drawTick(angle,radius,cnt++);
+        }
+        ct.restore();
+    }
+    function drawText(){                          //绘制刻度文字
+        var radius = circle.radius + ring_innerRadius;  // 圆的半径
+        var angleDate = 2*Math.PI /16;            //每个刻度表之间相差2*Math.PI /16
+        ct.save();                                 //用于保存canvas当前状态，保存后可以进行偏移、缩放、旋转、错位、剪切等操作
+        ct.fillStyle = annot_fillSty;          //填充文字颜色
+        ct.textAlign = "center";                //文字对齐
+        ct.textBaseline = "middle";            //
+        ct.font = annot_textSize + "px Helvetica";  //设置文字样式
+        for(var angle = 0;angle < 2 * Math.PI; angle +=angleDate ){
+            ct.beginPath();                       //开始新的绘制
+            ct.fillText(((angle * 180) / Math.PI).toFixed(0),
+                    circle.x + Math.cos(angle) * (radius - 22),
+                    circle.y - Math.sin(angle) * (radius - 18));  //填充文字，fillText(text,x,y)  text:表示填充的文字  x:表示填充X轴坐标  y:表示填充X轴坐标
+         }
+        ct.restore();
+    }
+    function draw(){
+        var loc ={x: circle.x,y: circle.y};
+        drawCentroidGuid(loc);
+        drawRing();
+        drawTicks();
+        drawTickInnerCircle();
+        drawCentroid();
+        drawText()
+    }
+    ct.shadowColor = "rgba(0,0,0,0.4)";       //阴影层颜色
+    ct.shadowOffsetX = 2;
+    ct.shadowOffsetY = 2;
+    ct.shadowBlur = 4;                           //高斯模糊
+    draw();
+    //drawGrid("red",10,10);
+
+</script>
+</body>
+</html>

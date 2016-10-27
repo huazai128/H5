@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        *{margin: 0;padding: 0;}
+        body{background: #ddd;}
+        img{position: absolute;top: 30px;left: 10px;}
+    </style>
+</head>
+<body>
+<div class="box">
+    <a href="javascript:void(0)" id="btn">Button</a>
+</div>
+<img id="src">
+<canvas id="canvas" style="display: none"></canvas>
+
+<script>
+    /**
+     * 一般不建议在元素上地并宽高，这样定义的宽高不是canvas绘制环境的宽高
+     */
+    var canvas = document.querySelector("#canvas");
+    var btn = document.querySelector("#btn");
+    var image = document.querySelector("#src");
+    var loop ;
+    var cxt = canvas.getContext("2d");//创建一个2d环境
+    canvas.width =  250;
+    canvas.height =  250;
+    var  FONT_HEIGHT = 15,//
+            MARGIN = 35,
+            HAND_TRUNCATION = canvas.width/25,
+            HOUR_HAND_TRUNCATION = canvas.width/10,
+            NUMERAL_SPACING = 20,
+            RADIUS = canvas.width/2 - MARGIN,//半径
+            HAND_RADIUS = RADIUS + NUMERAL_SPACING,//文字的半径
+            MIAO_RADIUS = RADIUS - 2;//秒钟半径
+    //绘制圆
+    function drawCircle(){
+        cxt.beginPath();
+        cxt.arc(canvas.width/2,canvas.height/2,RADIUS,0,2*Math.PI,false);
+        cxt.stroke();
+    }
+    //绘制时刻
+    function drawNumerals(){
+        var numerals =[1,2,3,4,5,6,7,8,9,10,11,12],//时刻
+                angle = 0,//角度
+                numeralWidth = 0;
+        numerals.forEach(function(index){
+            angle = Math.PI / 6 * (index - 3);//减3 是为了让12时刻在-90度
+            numeralWidth = cxt.measureText(index).width;//measureText： 获取文字的宽高
+            //fillText(text,x,y);绘制文本；text绘制的文字，x:表示绘制点的X轴。y:表示绘制点的Y轴。Math.cos(0) = 1;Math.sin(0) = 0;
+            cxt.fillText(index,canvas.width/2 + Math.cos(angle) * (HAND_RADIUS) - numeralWidth / 2,canvas.height / 2 + Math.sin(angle)*(HAND_RADIUS) + FONT_HEIGHT/3);
+        })
+    }
+    //绘制中心圆
+    function drawCenter(){
+        cxt.beginPath();
+        //绘制圆
+        cxt.arc(canvas.width/2,canvas.height/2,5,0,2 * Math.PI,0,false);
+        cxt.fill();//填充
+    }
+    //绘制指针
+    function drawHand(loc,isHour){
+        var angle = (Math.PI * 2) * (loc/60) - Math.PI / 2;
+        handRadius = isHour ? RADIUS - HAND_TRUNCATION - HOUR_HAND_TRUNCATION : RADIUS - HAND_TRUNCATION;
+        cxt.moveTo(canvas.width / 2,canvas.height/2);//从圆心开始绘制
+        cxt.lineTo(canvas.width/2 + Math.cos(angle) * handRadius,canvas.height/2 + Math.sin(angle) *handRadius);
+        cxt.stroke();
+    }
+    function drawHands(){
+        var date = new Date,hour = date.getHours();
+        hour = hour > 12 ? hour - 12 : hour;//判断时间是否大于12如果大于就用hour-12；
+        drawHand(hour * 5 + (date.getMinutes()/60) * 5,true);//没懂
+        drawHand(date.getMinutes(),false);//获取分钟
+        drawHand(date.getSeconds(),false);//date.getSeconds()：获取秒
+    }
+    function drawMiao(){   //绘制刻度线
+        var eny = 60;
+        var angleDate =  2 * Math.PI / 60;
+        var angle = 0;
+        for(var i = 0 ;i < eny ;i++){
+            var line =  3;
+            if((i % 5) == 0){
+                line = 6;
+            }
+            angle += angleDate;
+            cxt.beginPath();
+            cxt.lineCap = "round";
+            cxt.moveTo(canvas.width/2 + Math.cos(angle) * MIAO_RADIUS,canvas.height/2 + Math.sin(angle) * MIAO_RADIUS);
+            cxt.lineTo(canvas.width/2+ Math.cos(angle) *( MIAO_RADIUS - line),canvas.height/2 + Math.sin(angle) * (MIAO_RADIUS - line));
+            cxt.stroke();
+        }
+    }
+    //离屏
+    function updateImage(){
+        image.src = canvas.toDataURL();//获取图片
+    }
+    function init(){
+        cxt.clearRect(0,0,canvas.width,canvas.height);
+        cxt.save();//保存canvas状态
+        cxt.fillStyle = "rgba(255,255,255,0.8)";//绘制颜色
+        cxt.fillRect(0,0,canvas.width,canvas.height);//绘制矩形
+        drawCircle();
+        drawCenter();
+        drawHands();
+        drawMiao();
+        cxt.restore();//用来恢复canvas之前保存的状态
+        drawNumerals();
+        updateImage();//离屏
+    };
+    canvas.addEventListener("mousedown",function(e){
+        var client = canvas.getBoundingClientRect();//这个是获取canvas环境对象宽高和top、left的值
+        console.log(e.type +"==="+client.left)
+    });
+   cxt.font = FONT_HEIGHT +"px Arial";//设置字体样式
+   loop = setInterval(init,1000);
+
+    btn.onclick = function(e){
+        var dataUrl;
+        var html = this.innerHTML;
+        if(html === "Button"){
+            //转换成图片格式
+            dataUrl = canvas.toDataURL();//获取canvas中的内容是以图片的形式保存
+            clearInterval(loop);//清除定时器
+            image.src = dataUrl;//添加图片路径
+            image.style.display = "block";//图片显示
+            canvas.style.display = "none";//canvas隐藏
+            this.innerHTML = "Display canvas"
+        }else{
+            canvas.style.display = "block";
+            image.style.display = "none";
+            loop = setInterval(init,1000);//重新定义定时器
+            this.innerHTML = "Button";
+        }
+    }
+</script>
+</body>
+</html>

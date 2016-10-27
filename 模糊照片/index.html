@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <meta http-equiv="content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="height=device-height,width=device-width,initial-scale=1.0,user-scalable=no">
+    <meta http-equiv="content-Type" content="text/html; charset=utf-8">
+    <style>
+        *{margin: 0;padding: 0;}
+        body{font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;font-size: 14px;overflow: hidden;}
+        .box{position: relative;max-width: 1024px;margin: 0 auto;height: auto;overflow: hidden;}
+        .box .hide{visibility: hidden;width: 100%;height: 100%;}
+        .box .img{position: absolute;top: 0;left: 0;width: 100%; right: 0;z-index: 2;height: auto;display: block;-webkit-filter:blur(20px);
+            -ms-filter: blur(20px);/*高斯模糊*/
+            -moz-filter:blur(20px);
+            filter:blur(20px)
+        }
+        canvas{display: block;position: absolute;top: 0;left: 0;margin: 0 auto;overflow: hidden;z-index: 100;}
+        a{position: absolute;bottom: 30px;z-index: 1000;text-decoration: none;display: block;width: 100px;height: 30px;line-height: 30px;text-align: center;background: #0b8883;}
+        a.reset{left: 50px;}
+        a.show{right: 50px;}
+    </style>
+</head>
+<body>
+<div class="box" id="box">
+    <img src="index.jpg" class="hide">
+    <img src="index.jpg" class="img" id="img">
+    <canvas id="canvas"></canvas>
+    <a href="javascript:void(0)" class="reset" onclick="reset()">Reset</a>
+    <a href="javascript:void(0)" class="show" onclick="show()">Show</a>
+</div>
+<script>
+    /**
+     * @type {Element}
+     * 1、对图片进行高斯模糊处理
+     * 2、对于绘制小圆边界问题
+     * 3、随机显示坐标圆心
+     * 4、使用图片剪切drawImage
+     * 5、绘制圆，使用clip来显示圆心区域
+     */
+    var canvas = document.querySelector("#canvas");
+    var box = document.querySelector("#box");
+    var img = document.querySelector("#img");
+    var ct = canvas.getContext("2d");
+    var ops ={};
+    var timer;
+    var image = new Image();
+    image.src = "index.jpg";
+    function resize(){
+        ops.boxW = box.offsetWidth;
+        ops.boxH = box.offsetWidth *(768/1024);
+        canvas.width = ops.boxW;
+        canvas.height = ops.boxH;
+        img.style.height = canvas.height + "px";
+        image.width = canvas.width;
+        image.height = canvas.height;
+    }
+    window.onresize = function(){
+        resize();
+    };
+    ops.radius = 50;
+    var clippingRegion = {x: 400, y : 200,r:ops.radius};
+    var leftMargin;
+    var topMargin = 0;
+    image.onload = function(e){
+        resize();
+        initCanvas();
+    };
+    function initCanvas(){
+        //绘制圆坐标:随机坐标圆心
+        clippingRegion = {x:Math.random()*(canvas.width - 2 * ops.radius)+ops.radius,y:Math.random() * (canvas.height - 2 * ops.radius)+ops.radius,r:clippingRegion.r};
+        draw(image,clippingRegion);
+    }
+    //绘制圆
+    function setClipping(clippingRegion){
+        ct.beginPath();
+        ct.arc(clippingRegion.x,clippingRegion.y,clippingRegion.r,0,2*Math.PI,false);
+        ct.clip();//剪切重合地方显示注重要一步
+    }
+    //绘制
+    function draw(image,clippingRegion){
+        ct.clearRect(0,0,canvas.width,canvas.height);
+        ct.save();//保存
+        setClipping(clippingRegion);
+        //剪切图片；
+        ct.drawImage(image,0,0,canvas.width,canvas.height,0,0,canvas.width,canvas.height);
+        ct.restore();
+    }
+    function show(){
+        var timer = setInterval(function(){
+            clippingRegion.r +=20;
+            if(clippingRegion.r > 2 * Math.max(canvas.width,canvas.height)){
+                clearInterval(timer);
+            }
+            draw(image,clippingRegion)
+        },30)
+    }
+    //重置
+    function reset(){
+        initCanvas();
+    }
+    canvas.addEventListener('touchstart',function(e){
+        e.preventDefault();//阻止触屏默认动作
+    })
+</script>
+</body>
+</html>

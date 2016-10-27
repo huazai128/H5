@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body{background: #0b8883
+        }
+        *{margin: 0;padding: 0;}
+        canvas{margin: 0 auto;box-shadow: 0 0 5px #083f52;  }
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+    var canvas = document.querySelector("#canvas");
+    canvas.width =  600;
+    canvas.height = 400;
+    var ct = canvas.getContext("2d");
+    var mar = 40,//边框距离
+            origin = {x: mar,y:canvas.height - mar},//X轴和Y轴的中心点
+            tops = mar,//设置上边距
+            rights = canvas.width - mar,//设置右边距
+            horizontal = 10,//每小格坐标间距
+            vertical = 10,//每小格坐标间距
+            widths = rights - origin.x,//实际X轴宽度
+            heights = origin.y - tops,//实际Y轴高度
+            numY = heights / vertical,//
+            numX = widths / horizontal,
+            tick_width = 10,//
+            tick_lineW = 0.5,//线宽
+            tick_color = "navy",//颜色
+            axis_lineW = 1,//线宽
+            axis_color = "blue";
+     //绘制Ｘ轴
+    function drawHorizontal(){
+        ct.beginPath();
+        ct.moveTo(origin.x,origin.y);
+        ct.lineTo(rights,origin.y);
+        ct.stroke();
+    }
+    //绘制Y轴
+    function drawVertical(){
+        ct.beginPath();
+        ct.moveTo(origin.x,origin.y);
+        ct.lineTo(origin.x,tops);
+        ct.stroke();
+    }
+    //绘制X轴刻度线
+    function drawHorizontalAxes(){
+        var deltaY;
+        for(var i = 1;i < numX;i++){
+            ct.beginPath();
+            if(i % 5 === 0){
+                deltaY = tick_width;
+            }else{
+                deltaY = tick_width/2;
+            }
+            ct.moveTo(origin.x + i * horizontal,origin.y - deltaY);//
+            ct.lineTo(origin.x + i * horizontal,origin.y + deltaY);
+            ct.stroke();
+        }
+    }
+    //绘制Y轴
+    function drawVerticalAxes(){
+        var deltaX;
+        for(var i = 1; i < numY;i++){
+            ct.beginPath();
+            if(i % 5 === 0){
+                deltaX = tick_width;
+            }else{
+                deltaX = tick_width/2;
+            }
+            ct.moveTo(origin.x - deltaX,origin.y - i * vertical);
+            ct.lineTo(origin.x + deltaX,origin.y - i * vertical);
+            ct.stroke();
+        }
+    };
+    function drawAxes(){
+        ct.save();
+        ct.strokeStyle = axis_color;
+        ct.lineWidth = axis_lineW;
+        drawVerticalAxes() ;
+        drawHorizontalAxes();
+        ct.strokeStyle = tick_color;
+        ct.lineWidth = 0.5;
+        drawHorizontal();
+        drawVertical();
+        ct.stroke();
+        ct.restore();
+    }
+    drawAxes()
+</script>
+</body>
+</html>

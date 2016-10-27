@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        *{padding: 0; margin: 0;}
+        body{background: #ddd;}
+        canvas{position: absolute;top: 20px;left: 0;background: #fff;border: thin inset rgba(100,150,230,0.5);cursor: pointer;}
+    </style>
+</head>
+<body>
+<div id="box"></div>
+<canvas id="canvas"></canvas>
+
+<script>
+    function init(){
+        var canvas = document.querySelector("#canvas");
+        var box = document.querySelector("#box");
+        var image =  new Image();
+        canvas.width = 400;
+        canvas.height = 250;
+        var ct = canvas.getContext("2d");//创建一个2d环境
+        if(!ct){
+            alert("浏览器不支持canvas");
+            return;
+        }
+        function windowToCanvas(canvas,x,y){
+            //getBoundingClientRect():获取canvas的边界框，以及left和top的距离
+            var cli = canvas.getBoundingClientRect();
+            //console.log(cli.width):包含边框的距离；也就是边线border
+            return {
+                x: x - cli.left * (canvas.width / cli.width),//这里是防止canvas元素大小和canvas绘制表面大小不相符时，
+                y: y - cli.top * (canvas.height / cli.height)
+            }
+        }
+        //绘制背景
+        function drawBg(){
+            var line = 12;
+            var i =  canvas.height;
+            ct.clearRect(0,0,canvas.width,canvas.height);//清除画布
+            ct.strokeStyle = "lightgray";//绘制元素
+            ct.lineWidth =  2; //绘制线宽
+            while(i > line * 4){//while判断当等于0 时，自动结束循环
+                ct.beginPath();//开始绘制
+                ct.moveTo(0,i);//开始点
+                ct.lineTo(canvas.width,i);//终点
+                ct.stroke();//绘制
+                i -= line;
+            }
+        }
+        function drawSprite(){
+            ct.drawImage(image,0,0);//绘制图片
+        }
+        function drawGuide(x,y){
+            ct.strokeStyle = "rgba(0,0,230,0.8)";
+            ct.lineWidth = 0.5;
+            drawVertical(x);
+            drawHorizontal(y);
+        }
+        function update(x,y){
+            box.innerText = "("+ x.toFixed(0)+","+ y.toFixed(0)+")";//toFixed(i)四舍五入;i：保留的小数位数
+        }
+        function drawHorizontal(y){
+            ct.beginPath();//开始绘制
+            ct.moveTo(0,y + 0.5);//
+            ct.lineTo(canvas.width,y + 0.5);//
+            ct.stroke();
+        }
+        function drawVertical(x){
+            ct.beginPath();
+            ct.moveTo(x+ 0.5,0);
+            ct.lineTo(x + 0.5,canvas.height);
+            ct.stroke();
+        }
+        //在canvas元素上监听一个鼠标滑动事件
+        canvas.onmousemove = function(e){
+            var  loc = windowToCanvas(canvas,e.clientX,e.clientY);
+            drawBg();
+            drawSprite();
+            drawGuide(loc.x,loc.y);
+            update(loc.x,loc.y);
+        };
+        image.src = "index01.jpg";
+        image.onload = function(){//加载完成调用
+            drawSprite();
+        };
+        drawBg();
+    }
+    window.onload = function(){
+        init()
+    }
+</script>
+</body>
+</html>

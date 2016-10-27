@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        *{margin: 0;padding: 0;}
+        body{background: #ddd;}
+        img{position: absolute;top: 30px;left: 10px;}
+    </style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+
+<script>
+    var canvas = document.querySelector("#canvas");
+    canvas.width = 700;
+    canvas.height =  350;
+    var ct = canvas.getContext("2d");
+    var endPointer = [{x: 130,y:70},{x: 430,y: 270}];  //结束点坐标
+    var ctrlPointer = [{x: 130,y:250},{x: 450,y:70}];  //控制点坐标
+    var radius = 5;
+    function drawBezierCurve(){                          //绘制三次方贝塞尔曲线
+        ct.strokeStyle = "blue";                       //绘制样色
+        ct.beginPath();                                   //开始新的绘制
+        ct.moveTo(endPointer[0].x,endPointer[0].y);   //开始绘制点
+        ct.bezierCurveTo(                                 //bezierCurve(ctr1X,ctr1Y,ctr2X,ctr2Y,endX,endY):三次方贝塞尔曲线
+                ctrlPointer[0].x,
+                ctrlPointer[0].y,
+                ctrlPointer[1].x,
+                ctrlPointer[1].y,
+                endPointer[1].x,
+                endPointer[1].y
+        );
+        ct.stroke();                                      //绘制
+    }
+    //绘制坐标点的圆
+    function drawEndPointer(){
+        ct.fillStyle = "green";                        //填充颜色
+        endPointer.forEach(function(point){
+            ct.beginPath();                               //开始绘制
+            ct.arc(point.x,point.y,radius,0,Math.PI * 2,false);
+            ct.fill();
+        })
+    }
+    //绘制控制点的圆
+    function ctrlPoint(){
+        ct.fillStyle = "green";
+        ctrlPointer.forEach(function(point){
+            ct.beginPath();
+            ct.arc(point.x,point.y,radius,0,Math.PI *2,false);
+            ct.fill();
+        })
+    }
+    function init(){
+        drawBezierCurve();
+        drawEndPointer();
+        ctrlPoint();
+    }
+    init();
+</script>
+</body>
+</html>

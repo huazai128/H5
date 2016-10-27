@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body{background: #0b8883
+        }
+        *{margin: 0;padding: 0;}
+        canvas{margin: 0 auto;box-shadow: 0 0 5px #083f52;  }
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+    var canvas = document.querySelector("#canvas");
+    canvas.width =  600;
+    canvas.height = 400;
+    var ct = canvas.getContext("2d");
+    function drawLine(ct,x1,y1,x2,y2,lines){
+        //每一条虚线的长度
+        lines = lines === undefined ? 5 : lines;//三元判断
+        //根据不同位置绘制有可能是斜边绘制
+        var delX = x2 - x1;
+        var delY = y2 - y1;
+        //求斜边长求两点间的距离
+        var numb = Math.floor(Math.sqrt(delX * delX + delY * delY) / lines);//sqrt跟平方
+        for(var i = 0; i < numb ;i++){
+            //lineTo是不会绘制实线；只有moveTo才会绘制实线
+            ct[i % 2 === 0 ? "moveTo":"lineTo"](x1 + (delX/numb) * i,y1 + (delY /numb) * i);
+        }
+        ct.stroke();
+    }
+    ct.lineWidth = 2;
+    ct.strokeStyle = "blue";
+    drawLine(ct,20,20,canvas.width-20,20);
+    drawLine(ct,20,20,canvas.width-20,canvas.height-20);
+</script>
+</body>
+</html>

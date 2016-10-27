@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body{background: #0b8883;}
+        *{margin: 0;padding: 0;}
+    </style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+<script>
+    var canvas = document.querySelector("#canvas");
+    canvas.width =  400;
+    canvas.height = 340;
+    var image = new Image();
+    var ct = canvas.getContext("2d");
+    function shadowBox(){
+        ct.beginPath();
+        ct.shadowColor = "rgba(0,0,0,0.5)";
+        ct.shadowOffsetX = 3;
+        ct.shadowOffsetY = 5;
+        ct.shadowBlur = 5;//高斯模糊
+        ct.strokeStyle = "red";
+        ct.strokeRect(20,20,180,180);
+        ct.fillStyle = "red";
+        ct.fillRect(20,20,180,180);
+        ct.stroke();
+    }
+    shadowBox();
+    function drawArc(){
+
+        ct.beginPath();
+        ct.lineWidth = 2;
+        ct.strokeStyle = "red";
+        ct.arc(280, 60,40,0,Math.PI * 3/2,false);
+        ct.stroke();
+
+        ct.beginPath();
+        ct.fillStyle = "blue";//先填充
+        ct.strokeStyle = "red";//后绘制
+        ct.arc(280,160,40,0,Math.PI * 3/2,false);
+        ct.closePath();//合并路径
+        ct.stroke();
+        ct.fill();
+    }
+    drawArc();
+</script>
+</body>
+</html>

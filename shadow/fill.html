@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body{background: #0b8883;}
+        *{margin: 0;padding: 0;}
+    </style>
+</head>
+<body>
+
+<canvas id="canvas"></canvas>
+<script>
+    var canvas = document.querySelector("#canvas");
+    canvas.width =  600;
+    canvas.height = 500;
+    var ct = canvas.getContext("2d");
+    function drawGrid(){
+        ct.beginPath();
+        ct.arc(300,190,150,0,Math.PI*2,false);//顺时针
+        ct.arc(300,190,100,0,Math.PI*2,true);//逆时针
+        ct.fill();//这种填充是在两圆之间填充
+        ct.shadowColor = undefined;
+        ct.shadowOffsetX = 0;
+        ct.shadowOffsetY =  0;
+        ct.shadowBlur = 0;
+        ct.stroke();
+    }
+    function draw(){
+        ct.clearRect(0,0,canvas.width,canvas.height);
+        ct.save();
+        ct.shadowColor = "rgba(0,0,0,0.8)";
+        ct.shadowOffsetX = 12;
+        ct.shadowOffsetY =  12;
+        ct.shadowBlur = 15;
+        drawGrid();
+        ct.restore();
+    }
+    ct.fillStyle = "rgba(100,140,230,0.5)";
+    ct.strokeStyle = ct.fillStyle;
+    draw()
+</script>
+</body>
+</html>

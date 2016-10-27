@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body{background: #0b8883
+        }
+        *{margin: 0;padding: 0;}
+        canvas{margin: 0 auto;box-shadow: 0 0 5px #083f52;  }
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+    var canvas = document.querySelector("#canvas");
+    canvas.width =  600;
+    canvas.height = 400;
+    var ct = canvas.getContext("2d");
+    var moveToFunction = CanvasRenderingContext2D.prototype.moveTo;//在CanvasRenderingContext2D原型中添加一个moveToFunction方法；同时覆盖moveTo
+    CanvasRenderingContext2D.prototype.lastMoveToLocation = {};//获取最后一个moveTo的参数
+    //获取moveTo最后一次的坐标参数
+    CanvasRenderingContext2D.prototype.moveTo = function(x,y){
+        moveToFunction.apply(ct,[x,y]);//apply指正偏移到ct对象，并接受一个伪数组arguments
+        this.lastMoveToLocation.x = x;
+        this.lastMoveToLocation.y = y;
+    };
+    //在原型中添加虚线方法
+    CanvasRenderingContext2D.prototype.dashedLineTo = function(x,y,dashLength){
+        dashLength = dashLength === undefined ? 5:dashLength;
+        var startX = this.lastMoveToLocation.x;
+        var startY = this.lastMoveToLocation.y;
+        var delX = x - startX;
+        var delY = y - startY;
+        var numb = Math.floor(Math.sqrt(delX * delX + delY * delY)/dashLength);
+        for(var i =0; i< numb;i++){
+            this[(i % 2 === 0 ? "moveTo":"lineTo")](startX + (delX/numb) *i,startY +(delY/numb)* i)
+        }
+        this.moveTo(x,y)
+    }
+    ct.beginPath();
+    ct.lineWidth = 1;
+    ct.strokeStyle = "blue";
+    ct.dashedLineTo(canvas.width-20,20);
+    ct.dashedLineTo(canvas.width-20,canvas.height-20);
+    ct.stroke();
+    ct.beginPath();
+    ct.lineWidth = 2;
+    ct.strokeStyle = "blue";
+    ct.dashedLineTo(20,20);
+    ct.dashedLineTo(canvas.width-20,canvas.height-20);
+    ct.stroke();
+</script>
+</body>
+</html>

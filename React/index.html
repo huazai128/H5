@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body{background: #0b8883
+        }
+        *{margin: 0;padding: 0;}
+        canvas{margin: 0 auto;}
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+    /**
+     * 在颜色使用上rgba的缺陷
+     * 1、rgba()： 是以硬件作为导向的，耗性能
+     * 2、不直观
+     */
+    function onLoad(){
+        var canvas = document.querySelector("#canvas");
+        canvas.width =  400;
+        canvas.height = 240;
+        var ct = canvas.getContext("2d");
+        //绘制矩形
+        function drawRect(){
+            ct.lineJoin = "round";//把矩形角弄成圆形
+            ct.lineWidth = 20;// 绘制线宽
+            ct.font = "24px Helvetice";//设置字体样式
+            ct.fillText("Click anywhere to arease", 170,80);//填充文字和填充的位置
+            ct.strokeStyle = "red";//绘制样式
+            ct.strokeRect(30, 30,180 ,180);//绘制矩形
+
+            ct.fillStyle = "rgba(255,35,4,0.5)";
+            ct.fillRect( 250, 30, 400,180);
+            ct.stroke();
+            ct.fill();
+        }
+        function drawRectRGB(){
+
+        }
+        //在canvas上监听鼠标事件，清楚画布
+        canvas.onmousedown = function(){
+            ct.clearRect(0,0,canvas.width,canvas.height)
+        }
+        function loading(){
+            drawRect()
+        }
+        loading()
+    }
+    onLoad();
+</script>
+</body>
+</html>

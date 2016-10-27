@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        body{background: #0b8883
+        }
+        *{margin: 0;padding: 0;}
+        canvas{margin: 0 auto;}
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+    /**
+     *
+     */
+    function onLoad(){
+        var canvas = document.querySelector("#canvas");
+        canvas.width =  200;
+        canvas.height = 200;
+        var ct = canvas.getContext("2d");
+        //线性渐变
+        function linear(){
+            var gradient = ct.createLinearGradient(0,0,canvas.width,0);//创建一个线性渐变createLinearGradient(startX,startY,endX,endY);这个也是渐变方向
+            gradient.addColorStop(0,"blue");
+            gradient.addColorStop(0.25,"yellow");
+            gradient.addColorStop(0.5,"green");
+            gradient.addColorStop(0.75,"#000");
+            gradient.addColorStop(1,"red");
+            ct.fillStyle = gradient;//填充矩形
+            ct.rect(0,0,canvas.width,canvas.height);//填充矩形
+            ct.fill();
+        }
+        //linear();
+        //放射渐变
+        function radial(){
+            //创建一个放射渐变createRadialGradient(radiusStartX,radiusStartY,radius1,radiusEndX,radiusEndY,radius2);需要创建两个圆，圆形坐标及半径；
+            gradient2 = ct.createRadialGradient(canvas.width/2,canvas.height,10,canvas.width/2,0,100);
+            gradient2.addColorStop(0,"blue");
+            gradient2.addColorStop(0.25,"white");
+            gradient2.addColorStop(0.5,"red");
+            gradient2.addColorStop(0.75,"yellow");
+            gradient2.addColorStop(1,"green");
+            ct.fillStyle = gradient2;
+            ct.rect(0,0,canvas.width,canvas.height);
+            ct.fill();
+        }
+        radial()
+    }
+    onLoad();
+</script>
+</body>
+</html>

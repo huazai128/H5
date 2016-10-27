@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        *{margin: 0;padding: 0;}
+        body{background: rgba(100,145,250,0.5);}
+        canvas{cursor: crosshair;padding: 0;background: #e6e6e6;margin: 30px;}
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+    var canvas = document.querySelector("#canvas");
+    var ct = canvas.getContext("2d");
+    canvas.width = 400;
+    canvas.height = 400;
+    ct.fillStyle = "cornflowerblue";        //填充颜色
+    ct.strokeStyle = "yellow";               //绘制颜色
+    ct.shadowBlur = 6;                        //高斯模糊
+    ct.shadowOffsetX = 3;                     //X轴阴影层效果
+    ct.shadowOffsetY = 3;                     //Y轴阴影层效果
+    ct.shadowColor = "rgba(50,50,50,0.8)"; //阴影层颜色
+    ct.lineWidth = 2;                        //线宽
+    ct.lineCap = "round";                    //冒顶效果为圆
+    ct.beginPath();                            //开始新的绘制
+    ct.moveTo(120.5,130);
+    ct.quadraticCurveTo(150,130,160.6,150.5);  //quadraticCurveTo(ctrX,ctrY,endX,endY);二次贝塞尔曲线
+    ct.quadraticCurveTo(190,250,210.5,160.5);
+    ct.quadraticCurveTo(240,100.5,290,70.5);
+    ct.stroke();
+</script>
+</body>
+</html>
